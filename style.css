@@ -117,4 +117,13 @@ header {
     text-align: center;
     border: 2px solid #fff;
     border-radius: 6px;
+    background-color: #fff;
+    color: #000;
+    /*background-color: #000;
+    color: #fff;*/
+}
+
+.btn-clicked {
+    background-color: #000;
+    color: #fff;
 }
