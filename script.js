@@ -11,6 +11,9 @@ function multiply (a,b) {
 }
 
 function divide (a,b) {
+    if (b == 0) {
+        return '8008135';
+    }
     return a / b;
 }
 
@@ -19,86 +22,182 @@ function square (a) {
 }
 
 function operate (num1, operator, num2) {
-    console.log('test');
+    backSpaceBtn.removeEventListener('mousedown', clearLastEntry);
     num1 = Number(num1);
     num2 = Number(num2);
-    console.log('Number 1: ' + num1);
-    console.log('Number 2: ' + num2);
-    console.log('Operator: ' + operator);
+    let result;
     if (operator === '+') {
-        display.textContent = add(num1, num2);
+        result = add(num1, num2).toString();
     } else if (operator === '-') {
-        display.textContent = subtract(num1, num2);
-    } else if (operator === 'X') {
-        display.textContent = multiply(num1, num2);
+        result = subtract(num1, num2).toString();
+    } else if (operator === 'x') {
+        result = multiply (num1, num2).toString();
     } else if (operator === '÷') {
-        display.textContent = divide(num1, num2);
+        result = divide (num1, num2).toString();
     }
+
+    /*console.log(typeof result);
+    console.log('length: ' + result.length);
+    console.log(typeof Number(result));
+    console.log(Number(result));
+    console.log(Number(result).toExponential(4));
+    console.log(typeof Number(result).toExponential(4));
+    console.log(Number(result).toExponential(4).toString());
+    console.log(typeof Number(result).toExponential(4).toString());*/
+    if (result.length > 12) {
+        result = Number(result).toExponential(4).toString();
+    }
+    display.textContent = result;
+    numberOne = result;
+    numberTwo = '';
+    operator = '';
+    displayOps.textContent = '=';
+    opsBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
+
+    return result;
 }
 
 function addBtnEvent () {
     calcBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
     opsBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
     decimal.addEventListener('mousedown', calculation);
-    equalBtn.addEventListener('mousedown', calculation);
+    backSpaceBtn.addEventListener('mousedown', clearLastEntry);
+    allClearBtn.addEventListener('mousedown', allClear);
+    squareBtn.addEventListener('mousedown', calculation);
+    negativeBtn.addEventListener('mousedown', calculation);
+}
+
+function allClear () {
+    btnClicked (this);
+
+    numberOne = '';
+    operator = '';
+    numberTwo = '';
+
+    display.textContent = '';
+    displayOps.textContent = '';
+
+    calcBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
+    decimal.addEventListener('mousedown', calculation);
+    backSpaceBtn.addEventListener('mousedown', clearLastEntry);
+    equalBtn.removeEventListener('mousedown', calculation);
+}
+
+function clearLastEntry () {
+    btnClicked (this);
+
+    if (numberTwo) {
+        if (numberTwo.slice(0,2) === '0.' && numberTwo.length === 2) {
+            numberTwo = '';
+            display.textContent = '';
+        }else {
+            numberTwo = numberTwo.slice(0, -1)
+            display.textContent = numberTwo;
+        }
+    } else if (numberOne) {
+        numberOne = numberOne.slice(0, -1);
+        display.textContent = numberOne;
+    }
+
+    calcBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
+    decimal.addEventListener('mousedown', calculation);
+}
+
+function btnClicked (btn) {
+    btn.classList.add('btn-clicked');
+    btn.addEventListener('mouseup', (e) => btn.classList.remove('btn-clicked'));
+    btn.addEventListener('mouseleave', (e) => btn.classList.remove('btn-clicked'));
 }
 
 function calculation () {
-    this.classList.add('btn-clicked');
-    this.addEventListener('mouseup', (e) => this.classList.remove('btn-clicked'));
-    this.addEventListener('mouseleave', (e) => this.classList.remove('btn-clicked'));
+    if (this.id === 'decimal') {
+        if (!numberOne && !operator) {
+            numberOne += '0.';
+            display.textContent = '0.';
+        } else if(numberOne && !operator) {
+            numberOne += '.';
+        } else if (numberOne && operator && !numberTwo) {
+            numberTwo += '0.';
+            display.textContent = '0.';
+        } else if (numberTwo) {
+            numberTwo += '.';
+            display.textContent += '.';
+        }
+        decimal.removeEventListener('mousedown', calculation);
+    }
 
-    if (!numbersArr.includes(this.id)) {
-        if (this.id === 'addition') operator = '+';
-        if (this.id === 'subtraction') operator = '-';
-        if (this.id === 'multiplication') operator = 'X';
-        if (this.id === 'division') operator = '÷';
-        if (this.id === 'negative' && numberOne && !numberTwo) {
-            //operator = '(-)';
-            numberOne *= -1;
-        }
-        if (this.id === 'negative' && numberOne && numberTwo) {
-            //operator = '(-)';
-            numberTwo *= -1;
-        }  
-        if (this.id === 'squared' && numberOne) {
-            operator = 'sq';
-            numberOne = square(numberOne);
-        }
-    } else if (!operator) {
-        if (this.id === 'decimal' && !numberOne) {
-            decimal.removeEventListener('mousedown', calculation);
-            numberOne += '0.'
-        } else if (this.id === 'decimal' && numberOne) {
-            decimal.removeEventListener('mousedown', calculation);
-            numberOne += '.'
+    if (numbersArr.includes(this.id)) {
+        if (!operator) {
+            if (display.textContent.length < 12) {
+                numberOne += numbers[this.id];
+            } else {
+                calcBtn.forEach(btn => btn.removeEventListener('mousedown', calculation));
+            }
+            /*numberOne += numbers[this.id];*/
         } else {
-            numberOne += numbers[this.id];
-        }
-    } else {
-        if (this.id === 'decimal' && !numberTwo) {
-            decimal.removeEventListener('mousedown', calculation);
-            numberTwo += '0.'
-        } else if (this.id === 'decimal' && numberTwo) {
-            decimal.removeEventListener('mousedown', calculation);
-            numberTwo += '.'
-        } else {
-            numberTwo += numbers[this.id];
+            if (display.textContent.length < 12) {
+                numberTwo += numbers[this.id];
+            } else {
+                calcBtn.forEach(btn => btn.removeEventListener('mousedown', calculation));
+            }
+            opsBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
+            equalBtn.addEventListener('mousedown', calculation);
         }
     }
 
-    
+    if (operatorsArr.includes(this.id)) {
+        if (numberOne && numberTwo) {
+            numberOne = operate(numberOne, operator, numberTwo);
+            numberTwo = '';
+            operator = operators[this.id];
+            display.textContent = numberOne;
+            displayOps.textContent = operator;
+            decimal.addEventListener('mousedown', calculation);
+
+        } else {
+            calcBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
+            decimal.addEventListener('mousedown', calculation);
+            opsBtn.forEach(btn => btn.removeEventListener('mousedown', calculation));
+            operator = operators[this.id];
+            displayOps.textContent = operator;
+            equalBtn.addEventListener('mousedown', calculation);
+        }
+    }
+
+    if (this.id === 'negative') {
+        if (numberOne && numberTwo) {
+            numberTwo *= -1;
+        } else if (numberOne && !numberTwo) {
+            numberOne *= -1;
+        } else {
+            return;
+        }
+    }
+
+    if (this.id === 'squared') {
+        if (numberOne && !numberTwo) {
+            let workingNum = numberOne ** 2;
+            if (workingNum.toString().length > 12) {
+                numberOne = workingNum.toExponential(4);
+                opsBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
+            } else {
+                numberOne = workingNum;
+                opsBtn.forEach(btn => btn.addEventListener('mousedown', calculation));
+            }
+        }
+        
+        equalBtn.removeEventListener('mousedown', calculation);
+        
+    }
+
     if (!numberTwo) {
         display.textContent = numberOne;
     } else {
         display.textContent = numberTwo;
     }
     
-    displayOps.textContent = operator;
-    
     if (this.id === 'equals') operate(numberOne, operator, numberTwo);
-
-}
+}       
 
 const calcBtn = Array.from(document.querySelectorAll('.numBtn'));
 const opsBtn = Array.from(document.querySelectorAll('.opBtn'));
@@ -106,6 +205,10 @@ const decimal = document.querySelector('.dot');
 const display = document.querySelector('.output-text');
 const displayOps = document.querySelector('.output-operation');
 const equalBtn = document.querySelector('.equals');
+const backSpaceBtn = document.querySelector('.backspace');
+const allClearBtn = document.querySelector('.all-clear');
+const squareBtn = document.querySelector('.squared');
+const negativeBtn = document.querySelector('.negative');
 
 const numbers = {
     zero: 0,
@@ -118,13 +221,22 @@ const numbers = {
     seven: 7,
     eight: 8,
     nine: 9,
-    decimal: '.',
-}
+    //decimal: '.',
+};
+
+const operators = {
+    addition: '+',
+    subtraction: '-',
+    multiplication: 'x',
+    division: '÷',
+    squared: 'sq'
+};
 
 const numbersArr = Array.from(Object.keys(numbers));
+const operatorsArr =  Array.from(Object.keys(operators));
 
 let numberOne = '';
-let operator;
+let operator = '';
 let numberTwo = '';
 
-addBtnEvent();
+addBtnEvent ();
